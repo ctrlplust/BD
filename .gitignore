@@ -1,0 +1,13 @@
+# Volúmenes y datos locales de Docker
+pgdata/
+pgadmin/
+*.log
+
+# Archivos temporales o del sistema
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno
+.env
