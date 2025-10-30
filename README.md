@@ -88,7 +88,7 @@ desde CSV:
 
 ```bash
 # Copiar carpeta data al contenedor
-docker cp ~/ProyectoBD/data camiones_db:/data
+docker cp ./data camiones_db:/data
 
 # Ejecutar script de importación
 docker exec -it camiones_db psql -U postgres -d camiones -f /data/import_data.sql
