@@ -46,14 +46,16 @@ Crea el archivo `.env` en la raíz del proyecto con el siguiente contenido:
 
 ```bash
 cat > .env << EOF
-POSTGRES_PASSWORD=1234
+# Postgres
 POSTGRES_USER=postgres
+POSTGRES_PASSWORD=1234
 POSTGRES_DB=camiones
 POSTGRES_PORT=5432
-PGADMIN_EMAIL=tu_email@ejemplo.com
-PGADMIN_PASSWORD=1234
+
+# pgAdmin (opcional)
+PGADMIN_EMAIL=admin@localhost.com
+PGADMIN_PASSWORD=admin123
 PGADMIN_PORT=5050
-EOF
 ```
 
 ## Requisitos
