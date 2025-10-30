@@ -9,7 +9,7 @@ El sistema modela la gestión de **sucursales, ejecutivos, clientes, productos, 
 - **Triggers**
 - **Funciones auxiliares**
 - **Vistas con cálculo automático de avance**
-=======
+
 ##  Descripción General
 
 Proyecto de base de datos relacional implementado en **PostgreSQL**, normalizado hasta **3FN** y desplegado mediante **Docker Compose**.
