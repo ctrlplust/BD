@@ -276,14 +276,15 @@ CREATE OR REPLACE FUNCTION sp_registrar_venta(
   p_monto        NUMERIC(12,2),
   p_id_cliente   INT,
   p_id_producto  INT,
-  p_id_ejecutivo INT
+  p_id_ejecutivo INT,
+  p_id_canal     INT DEFAULT 1
 ) RETURNS INT
 LANGUAGE plpgsql AS $$
 DECLARE
   v_id_venta INT;
 BEGIN
-  INSERT INTO venta(fecha, monto, id_cliente, id_producto, id_ejecutivo)
-  VALUES (p_fecha, p_monto, p_id_cliente, p_id_producto, p_id_ejecutivo)
+  INSERT INTO venta(fecha, monto, id_cliente, id_producto, id_ejecutivo, id_canal)
+  VALUES (p_fecha, p_monto, p_id_cliente, p_id_producto, p_id_ejecutivo, p_id_canal)
   RETURNING id_venta INTO v_id_venta;
 
   RETURN v_id_venta;

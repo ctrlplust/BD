@@ -1,130 +1,149 @@
--- =====================================================
---   import_data.sql (versión psql dentro de Docker)
---   Ejecutar con:  \i /data/import_data.sql
---   Requiere que existan las tablas
--- =====================================================
+-- ======================================================
+--  IMPORT MASIVO PARA camiones
+--  Versión compatible con: psql -f /data/import_data.sql
+--  Usa \copy en vez de COPY FROM PROGRAM
+--  Convierte "8.0" -> 8
+-- ======================================================
 
-\echo '--- Importando REGIONES ---'
+\set ON_ERROR_STOP on
+
+BEGIN;
+
+\echo '=== IMPORTACIÓN MASIVA INICIADA ==='
+\echo ''
+
+\echo '--- 1) REGIONES ---'
 \copy region (nombre, pais) FROM '/data/regiones.csv' DELIMITER ',' CSV HEADER;
+SELECT '✓ Regiones cargadas: ' || COUNT(*)::TEXT FROM region;
 
-\echo '--- Importando GERENTES ---'
+\echo '--- 2) GERENTES ---'
 \copy gerentesucursal (nombre) FROM '/data/gerentes.csv' DELIMITER ',' CSV HEADER;
+SELECT '✓ Gerentes cargados: ' || COUNT(*)::TEXT FROM gerentesucursal;
 
-\echo '--- Importando CANALES ---'
+\echo '--- 3) CANALES ---'
 \copy canal (nombre) FROM '/data/canales.csv' DELIMITER ',' CSV HEADER;
+SELECT '✓ Canales cargados: ' || COUNT(*)::TEXT FROM canal;
 
-\echo '--- Importando CATEGORIAS ---'
+\echo '--- 4) CATEGORIAS ---'
 \copy productocategoria (nombre_categoria) FROM '/data/categorias.csv' DELIMITER ',' CSV HEADER;
+SELECT '✓ Categorías cargadas: ' || COUNT(*)::TEXT FROM productocategoria;
 
-\echo '--- Importando TIPOS DE EJECUTIVO ---'
+\echo '--- 5) TIPOS DE EJECUTIVO ---'
 \copy tipoejecutivo (nombre_tipo) FROM '/data/tipos_ejecutivo.csv' DELIMITER ',' CSV HEADER;
+SELECT '✓ Tipos ejecutivo cargados: ' || COUNT(*)::TEXT FROM tipoejecutivo;
 
--- ============================
--- SUCURSALES (usa staging)
--- ============================
-\echo '--- Creando staging_sucursales ---'
+
+-- ======================================================
+--  HASTA AQUÍ: TODO LO QUE NO DEPENDE DE NADIE
+--  DESDE AQUÍ: VIENEN LOS QUE TIENEN FK
+-- ======================================================
+
+\echo ''
+\echo '--- 6) SUCURSALES (con staging) ---'
 DROP TABLE IF EXISTS staging_sucursales;
 CREATE TEMP TABLE staging_sucursales (
     nombre TEXT,
     direccion TEXT,
-    region TEXT,
-    gerente TEXT
+    id_region TEXT,
+    id_gerente TEXT
 );
 
-\echo '--- Cargando staging_sucursales ---'
-\copy staging_sucursales (nombre, direccion, region, gerente) FROM '/data/sucursales.csv' DELIMITER ',' CSV HEADER;
+\copy staging_sucursales (nombre, direccion, id_region, id_gerente) FROM '/data/sucursales.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en SUCURSAL ---'
 INSERT INTO sucursal (nombre, direccion, id_region, id_gerente)
 SELECT
-    s.nombre,
-    s.direccion,
-    r.id_region,
-    g.id_gerente
-FROM staging_sucursales s
-JOIN region r ON r.nombre = s.region
-JOIN gerentesucursal g ON g.nombre = s.gerente
-ON CONFLICT (nombre, id_region) DO NOTHING;
+    nombre,
+    direccion,
+    CAST(REPLACE(id_region, '.0', '') AS INT),
+    CAST(REPLACE(id_gerente, '.0', '') AS INT)
+FROM staging_sucursales
+WHERE CAST(REPLACE(id_region, '.0', '') AS INT) IN (SELECT id_region FROM region)
+  AND CAST(REPLACE(id_gerente, '.0', '') AS INT) IN (SELECT id_gerente FROM gerentesucursal);
 
--- ============================
--- EJECUTIVOS (usa staging)
--- ============================
-\echo '--- Creando staging_ejecutivos ---'
+SELECT '✓ Sucursales insertadas: ' || COUNT(*)::TEXT FROM sucursal;
+
+\echo '--- 7) EJECUTIVOS (con staging) ---'
 DROP TABLE IF EXISTS staging_ejecutivos;
 CREATE TEMP TABLE staging_ejecutivos (
     nombre TEXT,
     rut TEXT,
-    tipo TEXT,
-    sucursal TEXT
+    id_tipo TEXT,
+    id_sucursal TEXT
 );
 
-\echo '--- Cargando staging_ejecutivos ---'
-\copy staging_ejecutivos (nombre, rut, tipo, sucursal) FROM '/data/ejecutivos.csv' DELIMITER ',' CSV HEADER;
+\copy staging_ejecutivos (nombre, rut, id_tipo, id_sucursal) FROM '/data/ejecutivos.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en EJECUTIVO ---'
 INSERT INTO ejecutivo (nombre, rut, id_tipo, id_sucursal)
 SELECT
-    s.nombre,
-    s.rut,
-    t.id_tipo,
-    su.id_sucursal
-FROM staging_ejecutivos s
-JOIN tipoejecutivo t ON t.nombre_tipo = s.tipo
-JOIN sucursal su ON su.nombre = s.sucursal
-ON CONFLICT (rut) DO NOTHING;
+    nombre,
+    rut,
+    CAST(REPLACE(id_tipo, '.0', '') AS INT),
+    CAST(REPLACE(id_sucursal, '.0', '') AS INT)
+FROM staging_ejecutivos
+WHERE CAST(REPLACE(id_tipo, '.0', '') AS INT) IN (SELECT id_tipo FROM tipoejecutivo)
+  AND CAST(REPLACE(id_sucursal, '.0', '') AS INT) IN (SELECT id_sucursal FROM sucursal);
 
--- ============================
--- CLIENTES (usa staging)
--- ============================
-\echo '--- Creando staging_clientes ---'
+SELECT '✓ Ejecutivos insertados: ' || COUNT(*)::TEXT FROM ejecutivo;
+
+\echo '--- 8) CLIENTES (con staging) ---'
 DROP TABLE IF EXISTS staging_clientes;
 CREATE TEMP TABLE staging_clientes (
     nombre TEXT,
     rut TEXT,
-    ejecutivo TEXT
+    id_ejecutivo TEXT
 );
 
-\echo '--- Cargando staging_clientes ---'
-\copy staging_clientes (nombre, rut, ejecutivo) FROM '/data/clientes.csv' DELIMITER ',' CSV HEADER;
+\copy staging_clientes (nombre, rut, id_ejecutivo) FROM '/data/clientes.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en CLIENTE ---'
 INSERT INTO cliente (nombre, rut, id_ejecutivo)
 SELECT
-    s.nombre,
-    s.rut,
-    CASE
-        WHEN s.ejecutivo IS NULL OR s.ejecutivo = '' THEN NULL
-        ELSE (SELECT e.id_ejecutivo FROM ejecutivo e WHERE e.nombre = s.ejecutivo)
+    nombre,
+    rut,
+    CASE 
+        WHEN id_ejecutivo IS NULL OR TRIM(id_ejecutivo) = '' THEN NULL
+        ELSE CAST(REPLACE(id_ejecutivo, '.0', '') AS INT)
     END
-FROM staging_clientes s
-ON CONFLICT (rut) DO NOTHING;
+FROM staging_clientes
+WHERE TRIM(nombre) <> '' AND TRIM(rut) <> ''
+  AND (id_ejecutivo IS NULL 
+       OR TRIM(id_ejecutivo) = '' 
+       OR CAST(REPLACE(id_ejecutivo, '.0', '') AS INT) IN (SELECT id_ejecutivo FROM ejecutivo));
 
--- ============================
--- PRODUCTOS (usa staging)
--- ============================
-\echo '--- Creando staging_productos ---'
+SELECT '✓ Clientes insertados: ' || COUNT(*)::TEXT FROM cliente;
+
+\echo '--- 9) PRODUCTOS (con staging) ---'
 DROP TABLE IF EXISTS staging_productos;
 CREATE TEMP TABLE staging_productos (
     nombre_producto TEXT,
-    categoria TEXT
+    id_categoria TEXT
 );
 
-\echo '--- Cargando staging_productos ---'
-\copy staging_productos (nombre_producto, categoria) FROM '/data/productos.csv' DELIMITER ',' CSV HEADER;
+\copy staging_productos (nombre_producto, id_categoria) FROM '/data/productos.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en PRODUCTO ---'
 INSERT INTO producto (nombre_producto, id_categoria)
 SELECT
-    s.nombre_producto,
-    c.id_categoria
-FROM staging_productos s
-JOIN productocategoria c ON c.nombre_categoria = s.categoria
-ON CONFLICT (nombre_producto) DO NOTHING;
+    nombre_producto,
+    CAST(REPLACE(id_categoria, '.0', '') AS INT)
+FROM staging_productos
+WHERE CAST(REPLACE(id_categoria, '.0', '') AS INT) IN (SELECT id_categoria FROM productocategoria);
 
--- ============================
--- METAS (usa staging)
--- ============================
-\echo '--- Creando staging_metas ---'
+SELECT '✓ Productos insertados: ' || COUNT(*)::TEXT FROM producto;
+
+-- ======================================================
+--  HASTA AQUÍ deberías ya tener:
+--  region: 16
+--  gerentesucursal: 5
+--  canal: 3
+--  productocategoria: 4
+--  tipoejecutivo: 3
+--  sucursal: 30
+--  ejecutivo: 50
+--  cliente: 50
+--  producto: 20
+-- ======================================================
+
+\echo ''
+\echo '--- 10) METAS (usa nombres) ---'
 DROP TABLE IF EXISTS staging_metas;
 CREATE TEMP TABLE staging_metas (
     periodo_inicio DATE,
@@ -136,11 +155,8 @@ CREATE TEMP TABLE staging_metas (
     categoria TEXT
 );
 
-\echo '--- Cargando staging_metas ---'
-\copy staging_metas (periodo_inicio, periodo_fin, cantidad_meta, monto_meta, peso_ponderado, ejecutivo, categoria)
-FROM '/data/metas.csv' DELIMITER ',' CSV HEADER;
+\copy staging_metas (periodo_inicio, periodo_fin, cantidad_meta, monto_meta, peso_ponderado, ejecutivo, categoria) FROM '/data/metas.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en META ---'
 INSERT INTO meta (
     periodo_inicio, periodo_fin,
     cantidad_meta, monto_meta, peso_ponderado,
@@ -155,14 +171,17 @@ SELECT
     e.id_ejecutivo,
     c.id_categoria
 FROM staging_metas s
-JOIN ejecutivo e ON e.nombre = s.ejecutivo
-JOIN productocategoria c ON c.nombre_categoria = s.categoria
-ON CONFLICT DO NOTHING;
+LEFT JOIN ejecutivo e
+    ON LOWER(TRIM(e.nombre)) = LOWER(TRIM(s.ejecutivo))
+LEFT JOIN productocategoria c
+    ON LOWER(TRIM(c.nombre_categoria)) = LOWER(TRIM(s.categoria))
+WHERE e.id_ejecutivo IS NOT NULL
+  AND c.id_categoria IS NOT NULL
+  AND s.periodo_fin > s.periodo_inicio;
 
--- ============================
--- VENTAS (usa staging)
--- ============================
-\echo '--- Creando staging_ventas ---'
+SELECT '✓ Metas insertadas: ' || COUNT(*)::TEXT FROM meta;
+
+\echo '--- 11) VENTAS (usa nombres) ---'
 DROP TABLE IF EXISTS staging_ventas;
 CREATE TEMP TABLE staging_ventas (
     fecha DATE,
@@ -173,11 +192,8 @@ CREATE TEMP TABLE staging_ventas (
     canal TEXT
 );
 
-\echo '--- Cargando staging_ventas ---'
-\copy staging_ventas (fecha, monto, cliente, producto, ejecutivo, canal)
-FROM '/data/ventas.csv' DELIMITER ',' CSV HEADER;
+\copy staging_ventas (fecha, monto, cliente, producto, ejecutivo, canal) FROM '/data/ventas.csv' DELIMITER ',' CSV HEADER;
 
-\echo '--- Insertando en VENTA ---'
 INSERT INTO venta (fecha, monto, id_cliente, id_producto, id_ejecutivo, id_canal)
 SELECT
     s.fecha,
@@ -187,9 +203,33 @@ SELECT
     e.id_ejecutivo,
     ca.id_canal
 FROM staging_ventas s
-JOIN cliente c   ON c.nombre = s.cliente
-JOIN producto p  ON p.nombre_producto = s.producto
-JOIN ejecutivo e ON e.nombre = s.ejecutivo
-JOIN canal ca    ON ca.nombre = s.canal;
+LEFT JOIN cliente c   ON LOWER(TRIM(c.nombre)) = LOWER(TRIM(s.cliente))
+LEFT JOIN producto p  ON LOWER(TRIM(p.nombre_producto)) = LOWER(TRIM(s.producto))
+LEFT JOIN ejecutivo e ON LOWER(TRIM(e.nombre)) = LOWER(TRIM(s.ejecutivo))
+LEFT JOIN canal ca    ON LOWER(TRIM(ca.nombre)) = LOWER(TRIM(s.canal))
+WHERE c.id_cliente IS NOT NULL
+  AND p.id_producto IS NOT NULL
+  AND e.id_ejecutivo IS NOT NULL
+  AND ca.id_canal IS NOT NULL;
 
-\echo '--- Importación terminada ---'
+SELECT '✓ Ventas insertadas: ' || COUNT(*)::TEXT FROM venta;
+
+\echo ''
+\echo '=== RESUMEN FINAL ==='
+SELECT 'region' AS tabla, COUNT(*) AS filas FROM region
+UNION ALL SELECT 'gerentesucursal', COUNT(*) FROM gerentesucursal
+UNION ALL SELECT 'canal', COUNT(*) FROM canal
+UNION ALL SELECT 'productocategoria', COUNT(*) FROM productocategoria
+UNION ALL SELECT 'tipoejecutivo', COUNT(*) FROM tipoejecutivo
+UNION ALL SELECT 'sucursal', COUNT(*) FROM sucursal
+UNION ALL SELECT 'ejecutivo', COUNT(*) FROM ejecutivo
+UNION ALL SELECT 'cliente', COUNT(*) FROM cliente
+UNION ALL SELECT 'producto', COUNT(*) FROM producto
+UNION ALL SELECT 'meta', COUNT(*) FROM meta
+UNION ALL SELECT 'venta', COUNT(*) FROM venta
+ORDER BY tabla;
+
+COMMIT;
+
+\echo ''
+\echo '✅ Importación completada con éxito ✅'

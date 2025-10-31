@@ -1,4 +1,4 @@
 periodo_inicio,periodo_fin,cantidad_meta,monto_meta,peso_ponderado,ejecutivo,categoria
-2025-10-01,2025-10-31,10,1000000,60,Ana Pérez,Tarjetas
-2025-10-01,2025-10-31,15,2000000,70,Carlos Soto,Créditos
-2025-10-01,2025-10-31,20,1500000,50,María López,Inversiones
+2025-10-01,2025-10-31,10,1000000,60,1,Tarjetas
+2025-10-01,2025-10-31,15,2000000,70,2,Créditos
+2025-10-01,2025-10-31,20,1500000,50,3,Inversiones

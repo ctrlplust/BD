@@ -1,27 +1,23 @@
 # Proyecto Banco Futura - Base de Datos (PostgreSQL + Docker)
 
-##  Descripción General
+## 📝 Descripción General
 
-Proyecto de base de datos relacional implementado en **PostgreSQL**, normalizado hasta **3FN** y desplegado mediante **Docker Compose**.  
-El sistema modela la gestión de **sucursales, ejecutivos, clientes, productos, ventas y metas de cumplimiento**, integrando **lógica de negocios directamente en la base de datos** mediante:
+Proyecto de base de datos relacional implementado en **PostgreSQL**, normalizado hasta **3FN** y desplegado mediante **Docker Compose**.
 
+El sistema modela la gestión integral de:
+- Regiones y Sucursales
+- Gerentes y Ejecutivos
+- Clientes y Productos
+- Canales de Venta
+- Ventas y Metas de Cumplimiento
+
+La lógica de negocio está implementada directamente en la base de datos mediante:
 - **Stored Procedures (SP)**
 - **Triggers**
 - **Funciones auxiliares**
 - **Vistas con cálculo automático de avance**
 
-##  Descripción General
-
-Proyecto de base de datos relacional implementado en **PostgreSQL**, normalizado hasta **3FN** y desplegado mediante **Docker Compose**.
-
-El sistema modela la gestión integral de **regiones, sucursales, gerentes, ejecutivos, clientes, productos, canales, ventas y metas de cumplimiento**, integrando **lógica de negocio directamente en la base de datos** mediante:
-
--  **Stored Procedures (SP)**
--  **Triggers**
--  **Funciones auxiliares**
--  **Vistas con cálculo automático de avance**
-
-Todo corre dentro de un contenedor Docker (`camiones_db`) y puede poblarse automáticamente desde archivos **Excel / Google Sheets exportados como CSV**.
+Todo corre dentro de un contenedor Docker (`camiones_db`) y puede poblarse automáticamente desde archivos **CSV**.
 
 ---
 
@@ -29,24 +25,29 @@ Todo corre dentro de un contenedor Docker (`camiones_db`) y puede poblarse autom
 
 | Archivo | Descripción |
 |----------|-------------|
-| `init_camiones.sql` | Crea todas las tablas, claves primarias y foráneas, restricciones e índices. |
-| `init_banco.sql` | Inserta datos base: regiones, sucursales, ejecutivos, clientes, productos, canales y metas iniciales. |
-| `logica_camiones.sql` | Implementa funciones, triggers, stored procedures y vistas para la lógica de negocio. |
-| `import_data.sql` | Carga masiva de datos desde archivos CSV montados en `/data`. |
-| `sigcob_datos.xlsx` | Planilla maestra (editable en Excel o Google Sheets) para poblar todas las entidades. |
-| `.env` | Variables de entorno utilizadas por Docker. |
-| `docker-compose.yml` | Define los servicios de Postgres y pgAdmin. |
-| `test_logic.sql` | Pruebas automáticas para verificar la lógica y validaciones. |
+| `init_camiones.sql` | Crea tablas, claves, restricciones e índices |
+| `init_banco.sql` | Datos base: regiones, sucursales, ejecutivos, etc. |
+| `logica_camiones.sql` | Funciones, triggers, SP y vistas |
+| `import_data.sql` | Carga masiva desde CSV en `/data` |
+| `docker-compose.yml` | Servicios de Postgres y pgAdmin |
+| `test_logic.sql` | Pruebas de lógica y validaciones |
 
----
+## 🚀 Requisitos
 
-## 🧩 Variables de Entorno
+- [Docker](https://www.docker.com)
+- [Docker-compose](https://docs.docker.com/compose/)
 
-Crea el archivo `.env` en la raíz del proyecto con el siguiente contenido:
+## 🔧 Configuración
 
+### Variables de Entorno
+Crear archivo `.env`:
 ```bash
+<<<<<<< HEAD
 cat > .env << EOF
 # Postgres
+=======
+POSTGRES_PASSWORD=1234
+>>>>>>> b150ab1 (feat: Actualización de README y validación de sistema completo)
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=1234
 POSTGRES_DB=camiones
@@ -56,53 +57,97 @@ POSTGRES_PORT=5432
 PGADMIN_EMAIL=admin@localhost.com
 PGADMIN_PASSWORD=admin123
 PGADMIN_PORT=5050
+<<<<<<< HEAD
 ```
+=======
+>>>>>>> b150ab1 (feat: Actualización de README y validación de sistema completo)
 
-## Requisitos
+## Instalación y Ejecución
 
-- [Docker](https://www.docker.com)
-- [Docker-compose](https://docs.docker.com/compose/)
-
-## Ejecutar Proyecto
+1. Levantar Servicios
 
 ```bash
 docker compose up -d
 ```
-Este levantara:
-  -PostgreSQL
-  -pgAdmin
-
-## Cargar los scripts SQL(Estructura)
-
+2. Cargar Estructura
 ```bash
-# Crear estructura de tablas
 docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/init_camiones.sql
 
-# Insertar datos iniciales (Banco Futura)
+# Datos iniciales
 docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/init_banco.sql
 
-# Cargar lógica de negocio (SP, triggers y vistas)
+# Lógica de negocio
 docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/logica_camiones.sql
 ```
 
-## Poblar la base
-desde CSV:
+3. Poblar Base de Datos
 
 ```bash
-# Copiar carpeta data al contenedor
+# Copiar datos
 docker cp ./data camiones_db:/data
 
-# Ejecutar script de importación
+# Importar
 docker exec -it camiones_db psql -U postgres -d camiones -f /data/import_data.sql
 ```
 
-Verificacion:
+## Pruebas y Validaciones
+
+1. Pruebas de Restricciones
+
 ```bash
-docker exec -it camiones_db psql -U postgres -d camiones -c "SELECT * FROM region;"
-docker exec -it camiones_db psql -U postgres -d camiones -c "SELECT * FROM canal;"
-docker exec -it camiones_db psql -U postgres -d camiones -c "SELECT * FROM producto;"
-docker exec -it camiones_db psql -U postgres -d camiones -c "SELECT * FROM venta;"
+-- Prueba de fechas inválidas (debe fallar)
+INSERT INTO meta (periodo_inicio, periodo_fin, cantidad_meta, monto_meta, 
+    peso_ponderado, id_ejecutivo, id_categoria)
+VALUES ('2025-10-31', '2025-09-01', 10, 1000000.00, 60.00, 1, 1);
+
+-- Prueba de monto negativo (debe fallar)
+INSERT INTO venta (fecha, monto, id_cliente, id_producto, id_ejecutivo, id_canal)
+VALUES ('2025-10-15', -150000.00, 1, 1, 1, 1);
+
+-- Prueba de peso ponderado inválido (debe fallar)
+INSERT INTO meta (periodo_inicio, periodo_fin, cantidad_meta, monto_meta, 
+    peso_ponderado, id_ejecutivo, id_categoria)
+VALUES ('2025-09-01', '2025-10-31', 10, 1000000.00, 101.00, 1, 1);
 ```
+
+2. Verificación de Metas
+```bash
+SELECT 
+    m.id_meta,
+    m.id_ejecutivo,
+    m.periodo_inicio,
+    m.periodo_fin,
+    m.cantidad_meta,
+    m.monto_meta,
+    COUNT(v.id_venta) as ventas_cantidad,
+    COALESCE(SUM(v.monto), 0) as ventas_monto,
+    ROUND(COUNT(v.id_venta)::numeric / m.cantidad_meta, 4) as avance_cantidad_pct,
+    ROUND(COALESCE(SUM(v.monto), 0) / m.monto_meta, 4) as avance_monto_pct
+FROM meta m
+LEFT JOIN venta v ON 
+    v.id_ejecutivo = m.id_ejecutivo AND
+    v.fecha BETWEEN m.periodo_inicio AND m.periodo_fin
+GROUP BY m.id_meta;
+```
+
+3. Verificación de Integridad
+
+```bash
+-- Intentar eliminar ejecutivo con ventas
+DELETE FROM ejecutivo WHERE id_ejecutivo = 1;
+
+-- Intentar eliminar categoría con productos
+DELETE FROM productocategoria WHERE id_categoria = 1;
+```
+
+## Funcionalidades Implementada
+✓ Tablas normalizadas hasta 3FN
+✓ Claves foráneas con integridad referencial
+✓ Triggers para validación de metas y ventas
+✓ Vista de avance de metas automática
+✓ Importación masiva desde CSV
+✓ Despliegue automatizado con Docker
+
 
 ## Que se encontrara al ejecutar
 Creación automática de todas las tablas del modelo:

@@ -1,4 +1,4 @@
 fecha,monto,cliente,producto,ejecutivo,canal
-2025-10-01,150000,Cliente Demo,Tarjeta Visa,Ana Pérez,Mesón
-2025-09-15,400000,Cliente Concepción,Fondo Mutuo Futuro,María López,Web
-2025-09-18,250000,Cliente Viña,Crédito Consumo,Carlos Soto,App
+2025-10-01,150000,Cliente demo,Tarjeta Visa,1,Mesón
+2025-09-15,400000,Cliente Concepción,Fondo Mutuo Futuro,2,Web
+2025-09-18,250000,Cliente Viña,Crédito Consumo,3,App
