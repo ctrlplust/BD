@@ -59,8 +59,6 @@ PGADMIN_PASSWORD=admin123
 PGADMIN_PORT=5050
 <<<<<<< HEAD
 ```
-=======
->>>>>>> b150ab1 (feat: Actualización de README y validación de sistema completo)
 
 ## Instalación y Ejecución
 
