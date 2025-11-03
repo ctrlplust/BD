@@ -42,12 +42,10 @@ Todo corre dentro de un contenedor Docker (`camiones_db`) y puede poblarse autom
 ### Variables de Entorno
 Crear archivo `.env`:
 ```bash
-<<<<<<< HEAD
 cat > .env << EOF
 # Postgres
 =======
 POSTGRES_PASSWORD=1234
->>>>>>> b150ab1 (feat: Actualización de README y validación de sistema completo)
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=1234
 POSTGRES_DB=camiones
@@ -57,7 +55,6 @@ POSTGRES_PORT=5432
 PGADMIN_EMAIL=admin@localhost.com
 PGADMIN_PASSWORD=admin123
 PGADMIN_PORT=5050
-<<<<<<< HEAD
 ```
 
 ## Instalación y Ejecución
@@ -69,13 +66,13 @@ docker compose up -d
 ```
 2. Cargar Estructura
 ```bash
-docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/init_camiones.sql
+docker exec -i camiones_db psql -U postgres -d camiones < ~/BD-Sistema_gestion_de_metas/init/init_camiones.sql
 
 # Datos iniciales
-docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/init_banco.sql
+docker exec -i camiones_db psql -U postgres -d camiones < ~/BD-Sistema_gestion_de_metas/init/init_banco.sql
 
 # Lógica de negocio
-docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/logica_camiones.sql
+docker exec -i camiones_db psql -U postgres -d camiones < ~/BD-Sistema_gestion_de_metas/init/logica_camiones.sql
 ```
 
 3. Poblar Base de Datos
@@ -85,7 +82,7 @@ docker exec -i camiones_db psql -U postgres -d camiones < ~/ProyectoBD/init/logi
 docker cp ./data camiones_db:/data
 
 # Importar
-docker exec -it camiones_db psql -U postgres -d camiones -f /data/import_data.sql
+docker exec -it camiones_db psql -U postgres -d camiones -f /data/reset_and_import.sql
 ```
 
 ## Pruebas y Validaciones
