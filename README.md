@@ -1,3 +1,40 @@
+# BD - Sistema de Gestión de Metas (Local)
+
+Este repositorio contiene datos y scripts para levantar una base Postgres con datos de ejemplo y una pequeña aplicación fullstack (Express + Postgres y frontend estático) para administrar `cliente` como ejemplo CRUD.
+
+Requisitos:
+- Docker / Docker Compose (para la base de datos)
+- Node.js >= 16
+
+Pasos rápidos:
+
+1) Levantar la base de datos (desde la raíz `BD-Sistema_gestion_de_metas`):
+
+```powershell
+cd \\wsl.localhost\Ubuntu\home\tomas\BD-Sistema_gestion_de_metas
+docker compose up -d
+```
+
+El servicio `postgres` ejecutará los scripts en `init/` y luego `import_data.sql` para cargar los CSV desde `data/`.
+
+2) Instalar y correr el backend:
+
+```powershell
+cd backend
+npm install
+npm run dev
+```
+
+El backend servirá la API en `http://localhost:3000` por defecto y también los archivos estáticos del frontend.
+
+3) Abrir la aplicación en el navegador:
+
+Visita `http://localhost:3000` y entra a la sección Clientes. Puedes listar, crear, editar y borrar clientes.
+
+Notas:
+- Las rutas CRUD están en `backend/routes/clientes.js`.
+- La conexión a Postgres lee las variables de `../.env` por defecto (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`).
+- Si quieres que añada CRUDs para `producto`, `venta` y `meta`, lo agrego en la siguiente iteración.
 # Proyecto Banco Futura - Base de Datos (PostgreSQL + Docker)
 
 ## 📝 Descripción General
@@ -79,10 +116,14 @@ docker exec -i camiones_db psql -U postgres -d camiones < ~/BD-Sistema_gestion_d
 
 ```bash
 # Copiar datos
-docker cp ./data camiones_db:/data
+docker cp ./data/reset_and_import.sql camiones_db:/tmp/reset_and_import.sql
 
 # Importar
+<<<<<<< HEAD
 docker exec -it camiones_db psql -U postgres -d camiones -f /data/reset_and_import.sql
+=======
+docker exec -i camiones_db psql -U postgres -d camiones -f /tmp/reset_and_import.sql
+>>>>>>> 92764f6 (update)
 ```
 
 ## Pruebas y Validaciones

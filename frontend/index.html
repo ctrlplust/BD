@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sistema de Metas — Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Sistema de Metas</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link active" href="#clientes">Clientes</a></li>
+            <li class="nav-item"><a class="nav-link" href="#productos">Productos</a></li>
+            <li class="nav-item"><a class="nav-link" href="#ventas">Ventas</a></li>
+            <li class="nav-item"><a class="nav-link" href="#metas">Metas</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section id="clientes">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2>Clientes</h2>
+          <div>
+            <button class="btn btn-success" id="btnNuevo">Nuevo cliente</button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped" id="tblClientes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>RUT</th>
+                <th>ID Ejecutivo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="productos" class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2>Productos</h2>
+          <div>
+            <button class="btn btn-success" id="btnNuevoProducto">Nuevo producto</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped" id="tblProductos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>ID Categoría</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="ventas" class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2>Ventas</h2>
+          <div>
+              <button class="btn btn-success" id="btnNuevaVenta">Nueva venta</button>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-3">
+            <input type="date" id="filter_fecha_inicio" class="form-control" placeholder="Fecha inicio">
+          </div>
+          <div class="col-md-3">
+            <input type="date" id="filter_fecha_fin" class="form-control" placeholder="Fecha fin">
+          </div>
+          <div class="col-md-3">
+            <select id="filter_ejecutivo" class="form-select"><option value="">Todos ejecutivos</option></select>
+          </div>
+          <div class="col-md-3">
+            <select id="filter_cliente" class="form-select"><option value="">Todos clientes</option></select>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <input id="filter_search" class="form-control" placeholder="Buscar cliente o producto..." style="width:320px;display:inline-block">
+          </div>
+          <div>
+            <button id="btnAplicarFiltros" class="btn btn-primary btn-sm">Aplicar filtros</button>
+            <button id="btnLimpiarFiltros" class="btn btn-secondary btn-sm">Limpiar</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped" id="tblVentas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="metas" class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2>Metas</h2>
+          <div>
+            <button class="btn btn-success" id="btnNuevaMeta">Nueva meta</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped" id="tblMetas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Periodo inicio</th>
+                <th>Periodo fin</th>
+                <th>Cantidad</th>
+                <th>Monto</th>
+                <th>Ejecutivo</th>
+                <th>Categoria</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal formulario -->
+    <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cliente</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formCliente">
+              <input type="hidden" id="clienteId">
+              <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" id="nombre" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">RUT</label>
+                <input class="form-control" id="rut" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">ID Ejecutivo (opcional)</label>
+                <input class="form-control" id="id_ejecutivo" type="number">
+              </div>
+            </form>
+            <div id="formFeedback" class="text-danger small"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardar">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div class="modal fade" id="modalProducto" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Producto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formProducto">
+              <input type="hidden" id="productoId">
+              <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" id="nombre_producto" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">ID Categoría</label>
+                <input class="form-control" id="id_categoria_prod" type="number">
+              </div>
+            </form>
+            <div id="formProductoFeedback" class="text-danger small"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarProducto">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Meta -->
+    <div class="modal fade" id="modalMeta" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Meta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formMeta">
+              <input type="hidden" id="metaId">
+              <div class="mb-2">
+                <label class="form-label">Periodo inicio</label>
+                <input class="form-control" id="periodo_inicio" type="date">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Periodo fin</label>
+                <input class="form-control" id="periodo_fin" type="date">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Cantidad meta</label>
+                <input class="form-control" id="cantidad_meta" type="number">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Monto meta</label>
+                <input class="form-control" id="monto_meta" type="number" step="0.01">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Peso ponderado</label>
+                <input class="form-control" id="peso_ponderado" type="number" step="0.01">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ID Ejecutivo</label>
+                <input class="form-control" id="id_ejecutivo_meta" type="number">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">ID Categoría</label>
+                <input class="form-control" id="id_categoria_meta" type="number">
+              </div>
+            </form>
+            <div id="formMetaFeedback" class="text-danger small"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarMeta">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Venta -->
+    <div class="modal fade" id="modalVenta" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Venta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="formVenta">
+              <input type="hidden" id="ventaId">
+              <div class="mb-2">
+                <label class="form-label">Fecha</label>
+                <input class="form-control" id="venta_fecha" type="date" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Monto</label>
+                <input class="form-control" id="venta_monto" type="number" step="0.01" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Cliente</label>
+                <select id="venta_cliente" class="form-select" required></select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Producto</label>
+                <select id="venta_producto" class="form-select" required></select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Ejecutivo</label>
+                <select id="venta_ejecutivo" class="form-select"></select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Canal</label>
+                <select id="venta_canal" class="form-select"></select>
+              </div>
+            </form>
+            <div id="formVentaFeedback" class="text-danger small"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarVenta">Guardar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/clientes.js"></script>
+    <script src="js/productos.js"></script>
+    <script src="js/ventas.js"></script>
+    <script src="js/metas.js"></script>
+  </body>
+  </html>
